@@ -1,13 +1,14 @@
+let linhas;
+let colunas;
+
 $(document).ready(function() {
     console.log( "ready!" );
 
     ajustarQuadrados();
-
-    console.log(getBelowElements($("#title-nome")[0]))
 });
 
 $(window).resize(function(){
-    ajustarQuadrados()
+    ajustarQuadrados();
  });
 
 function ajustarQuadrados() {
@@ -16,29 +17,35 @@ function ajustarQuadrados() {
     console.log(h)
     console.log(w)
 
+    // DEFININDO TAMANHO E QUANTIDADE DOS QUADRADOS
     let extra = 5;
     let quantQuadradosColuna = 10;
+    linhas = quantQuadradosColuna;
     let alturaQuadrado = h / quantQuadradosColuna;
-    let quantMaxQuadradosLinha = w / alturaQuadrado + extra;
+    let quantMaxQuadradosLinha = Math.floor(w / alturaQuadrado + extra);
+    colunas = quantMaxQuadradosLinha;
 
-    let linhaHtml = "<div class='linha'></div>";    
-    let quadradoHtml = "<span class='quadrado'></span>";
+    // HTML DE LINHA E COLUNA
+    let linhaHtml = "<div id='linha-id' class='linha'></div>";    
+    let quadradoHtml = "<span id='quadrado-id' class='quadrado' onclick='clickOnda(this)'></span>";
 
+    // VERIFICANDO E DESENHANDO OU REMOVENDO CADA LINHA E COLUNA
     for (let i = 0; i < quantQuadradosColuna + extra; i++) {
         if (!$("#quadro .linha")[i])
-             $("#quadro").append(linhaHtml)
+             $("#quadro").append(linhaHtml.replace('linha-id', 'L'+i))
 
         let linha = $("#quadro .linha")[i];
         let quadrados = $(linha).find(".quadrado");
         if (quadrados.length < quantMaxQuadradosLinha) {
             for (let j = quadrados.length; j < quantMaxQuadradosLinha; j++) 
-                $(linha).append(quadradoHtml)
+                $(linha).append(quadradoHtml.replace('quadrado-id', 'L'+i+'Q'+j))
         } else if (quadrados.length > quantMaxQuadradosLinha) {
             for (let j = quadrados.length; j > quantMaxQuadradosLinha; j--) 
                 $(linha).find(".quadrado").last().remove()
         }
     }
-    
+
+    // SETANDO TAMANHO E ANIMAÇÕES DOS QUADRADOS
     $(".quadrado").each(function() {
         $(this).height(alturaQuadrado)
         $(this).width(alturaQuadrado)
@@ -50,21 +57,22 @@ function ajustarQuadrados() {
             });
         });
 
-        loop(this);
+        $(this).stop();
+        loop(this, false);
     });
 
+    let quadradosEscuros = getQuadradosEscuros();
+    quadradosEscuros.forEach(quadrado => { $(quadrado).stop(); loop(quadrado, true) });
 }
 
-function loop(elm) {
-    let maxOpacity = verificarQuadradoAbaixo(elm) ? 0 : 15;
-
-    let opacityVal = getRandomInt(2, maxOpacity);
+function loop(elm, escuro) {
+    let opacityVal = getRandomInt(2, 30);
     let durationVal = getRandomInt(2, 5) * 1000;
     
     $(elm).animate({
-        opacity: opacityVal + "%",
+        opacity: escuro ? 0 : opacityVal + "%",
     }, durationVal, 'linear', function() {
-        loop(elm)
+        loop(elm, escuro)
     });
 }
 
@@ -74,6 +82,96 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
 }
 
+function clickOnda(el) {
+    let id = $(el).attr("id");
+    let linha = parseInt(id.substring(1, id.indexOf('Q')))
+    let coluna = parseInt(id.substring(id.indexOf('Q')+1))
+
+    let rodada = 1;
+    let delay = 0.1;
+
+    while (rodada <= linhas || rodada <= colunas) {
+        if (rodada > linhas)
+        {
+            let x = 0;
+        }
+
+        let menor = rodada
+        let maior = rodada+1
+
+        let onda = [];
+        for (i = linha-menor; i < linha+maior; i++) {
+            for (j = coluna-menor; j < coluna+maior; j++) {
+                if ((i > linha-menor && i < linha+maior-1) && (j > coluna-menor && j < coluna+maior-1)) {
+                    continue;
+                }
+                onda.push("L" + i + "Q" + j);
+            }
+        }
+        
+        if (onda.length > 0) {
+            onda.forEach(function (idQuadrado) { 
+                let elemento = document.getElementById(idQuadrado);
+                if (elemento) {
+                    elemento.style.animation = "flip-vertical-left 0.7s cubic-bezier(0.455, 0.030, 0.515, 0.955) " + delay + "s both";
+                    elemento.addEventListener("animationend", (ev) => { 
+                        elemento.style.animation = ""; 
+                    });
+                }
+            });
+        }
+
+        rodada++;
+        delay+=0.1; 
+    }
+}
+
+function getQuadradosEscuros() {
+    const tituloBounding = $("#title-nome")[0].getBoundingClientRect();
+    const cargoBounding = $("#title-cargo")[0].getBoundingClientRect();
+    const msgBounding = $("#title-msg")[0].getBoundingClientRect();
+    let quadradosEscuros = [];
+
+    for (const quadrado of $(".quadrado")) {
+        const quadradoBounding = quadrado.getBoundingClientRect();
+
+        if (!(tituloBounding.left - 40 > quadradoBounding.right ||
+              tituloBounding.bottom + 40 < quadradoBounding.top) ||
+            !(cargoBounding.left - 40 > quadradoBounding.right ||
+              cargoBounding.bottom + 40 < quadradoBounding.top) ||
+            !(msgBounding.left - 40 > quadradoBounding.right ||
+              msgBounding.bottom + 40 < quadradoBounding.top)) {
+              quadradosEscuros = [...quadradosEscuros, quadrado];
+        }
+    }
+
+    var metade = Math.floor(colunas / 2);
+    for (let i = 0; i <= linhas; i++) {
+        let esconderAte = getRandomInt(metade-5, metade+(i*2));
+        for (let j = metade; j < colunas; j++) {
+            if (j > esconderAte) {
+                quadradosEscuros.push($("#L"+i+"Q"+j)[0]);
+            }
+        } 
+    }
+    console.log(quadradosEscuros)
+    return quadradosEscuros; 
+}
+
+
+
+
+function verificarQuadradoAbaixo(quadrado) {
+    const quadradoBounding = quadrado.getBoundingClientRect(); 
+    const cargoBounding = $("#title-cargo")[0].getBoundingClientRect();
+    const tituloBounding = $("#title-nome")[0].getBoundingClientRect();
+
+    return !(tituloBounding.left > quadradoBounding.right ||
+             tituloBounding.bottom < quadradoBounding.top) ||
+           !(cargoBounding.left > quadradoBounding.right ||
+             cargoBounding.bottom < quadradoBounding.top)
+}
+
 function getBelowElements(el) {
     const sourceBounding = el.getBoundingClientRect();
     let belowElements = [];
@@ -81,24 +179,13 @@ function getBelowElements(el) {
     for (const currentElement of $(".quadrado")) {
         const targetBounding = currentElement.getBoundingClientRect();
 
-        // Se todas as condições forem falsas, é porque está tendo uma sobreposição
         if (!(sourceBounding.right < targetBounding.left ||
-            // sourceBounding.left > targetBounding.right ||
-            // sourceBounding.bottom < targetBounding.top ||
+            sourceBounding.left > targetBounding.right ||
+            sourceBounding.bottom < targetBounding.top ||
             sourceBounding.top > targetBounding.bottom)) {
-            belowElements = [...belowElements, currentElement]; // Adiciona o elemento atual ao array de elementos sobrepostos
+            belowElements = [...belowElements, currentElement]; 
         }
     }
 
-    return belowElements; // Retorna o array de elementos sobrepostos
-}
-
-function verificarQuadradoAbaixo(quadrado) {
-    const quadradoBounding = quadrado.getBoundingClientRect(); 
-    const tituloBounding = $("#title-nome")[0].getBoundingClientRect();
-
-    return !(quadradoBounding.right < tituloBounding.left ||
-            //  quadradoBounding.left > tituloBounding.right ||
-            //  quadradoBounding.bottom < tituloBounding.top ||
-             quadradoBounding.top > tituloBounding.bottom)
+    return belowElements; 
 }

@@ -8,6 +8,11 @@ body {
     height: 100vh;
     width: 100vw;
     background-color: #1f1f1f;    
+
+    font-family: "Space Grotesk", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
 }
 
 #borda {
@@ -20,8 +25,9 @@ body {
     left: -100px;
     top: -100px;
     display: flex;
-    flex-direction: column ;
-    filter: blur(0.4rem);
+    flex-direction: column;
+    filter: blur(0.7em);
+    cursor: pointer;
 }
 
 .linha {
@@ -31,15 +37,10 @@ body {
 
 .quadrado {
     margin: 2px;
+    border-radius: 2em;
     background-color: #e0e0e0;
     opacity: 0%;
-    /* transition: transform 0.8s;
-    transform-style: preserve-3d; */
 }
-
-/* .quadrado:hover .quadrado {
-    animation: flip-vertical-left 0.4s cubic-bezier(0.455, 0.030, 0.515, 0.955) both;
-} */
 
 .flip-vertical-left {
 	-webkit-animation: flip-vertical-left 0.4s cubic-bezier(0.455, 0.030, 0.515, 0.955) both;
@@ -66,24 +67,58 @@ body {
               transform: rotateY(-180deg);
     }
   }
+
+  .focus-in-expand {
+	-webkit-animation: focus-in-expand 3s cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s both;
+	        animation: focus-in-expand 3s cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s both;
+}
+
+ @-webkit-keyframes focus-in-expand {
+    0% {
+      -webkit-filter: blur(30px);
+              filter: blur(30px);
+      opacity: 0;
+    }
+    100% {
+      -webkit-filter: blur(1px);
+              filter: blur(1px);
+      opacity: 1;
+    }
+  }
+  @keyframes focus-in-expand {
+    0% {
+      -webkit-filter: blur(30px);
+              filter: blur(30px);
+      opacity: 0;
+    }
+    100% {
+      -webkit-filter: blur(1px);
+              filter: blur(1px);
+      opacity: 1;
+    }
+  }
   
 
-
-
-
-
 main {
+    display: flex;
+    flex-direction: column;
     align-items: end;
     padding: 5em 4em;
 }
 
 #title-nome {
-    margin: 10px;
+    margin: 5px 0;
     font-size: 3em;
     color: #919191;
 }
 
 #title-cargo {
-    font-size: 1.5em;
+    font-size: 1.3em;
+    color: #919191;
+}
+
+#title-msg {
+    margin-top: 40px;
+    font-size: 0.9em;
     color: #919191;
 }
